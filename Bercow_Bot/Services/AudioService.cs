@@ -12,8 +12,7 @@ using System.Threading.Tasks;
 namespace Bercow_Bot.Services
 {
     public class AudioService
-    { 
-        private readonly ConcurrentDictionary<ulong, IAudioClient> _connectedChannels = new ConcurrentDictionary<ulong, IAudioClient>();
+    {
         private readonly DiscordSocketClient _discord;
 
         public AudioService(IServiceProvider services)
@@ -24,17 +23,13 @@ namespace Bercow_Bot.Services
         public async Task JoinAudio(IGuild guild, IVoiceChannel target)
         {
             var audioClient = await target.ConnectAsync();
-
             audioClient.SpeakingUpdated  += AudioClient_SpeakingUpdated;
-
-            _connectedChannels.TryAdd(guild.Id, audioClient);
         }
 
-        private Task AudioClient_SpeakingUpdated(ulong userID, bool speaking)
+        private async Task AudioClient_SpeakingUpdated(ulong userID, bool speaking)
         {
-            SocketUser user = _discord.GetUser(userID);
-            Console.WriteLine(user.Username + (speaking ? " started" : " stopped") + " speaking");
-            return Task.CompletedTask;
+            Task<SocketUser> user = Task.Run(() => _discord.GetUser(userID));
+            Console.WriteLine((await user).Username + (speaking ? " started" : " stopped") + " speaking");
         }
     }
 }
